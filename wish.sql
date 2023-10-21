@@ -22,3 +22,20 @@ SELECT * FROM make_a_wish;
 
 DROP TABLE register_a_wisher;
 DROP TABLE make_a_wish;
+
+
+/* Consultas complejas */
+
+
+/* Ordenar usuarios por apellido y nombre */
+
+SELECT * FROM register_a_wisher 
+ORDER BY last_name ASC, first_name ASC; 
+
+
+/* Ordenar deseos por longitud de descripción.  */
+
+SELECT full_name, describe_your_wish 
+FROM make_a_wish 
+ORDER BY CHAR_LENGTH(describe_your_wish) DESC; 
+ 
