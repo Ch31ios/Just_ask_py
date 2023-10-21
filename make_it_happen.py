@@ -48,7 +48,7 @@ class DataBase:
 
             if existing_user:
                 
-                print(f"El usuario con identifiación: {user_id}, ya esta en uso. Por favor, crea otra identifiación.")
+                print("\n" + f"El usuario con identifiación: {user_id}, ya esta en uso. Por favor, crea otra identifiación.")
             else:
                 
                 self.cursor.execute(
@@ -58,6 +58,8 @@ class DataBase:
                 )
                 
                 self.connection.commit()
+                
+                print("\n" + "Has registrado un usuario con exito.")
                 
         except pymysql.Error as e:
             
@@ -82,6 +84,29 @@ class DataBase:
             
             print(f"Error al pedir un deseo. {e}")
             
+    # Método para verificar si un usuario existe en la base de datos
+    
+    def check_user_existence(self, first_name, last_name):
+        
+        try:
+            
+            self.cursor.execute(
+                
+                "SELECT user_id FROM register_a_wisher WHERE first_name = %s AND last_name = %s",
+                (first_name, last_name)
+            )
+            
+            existing_user = self.cursor.fetchone()
+            
+            if existing_user:
+                return True
+            else:
+                return False
+            
+        except pymysql.Error as e:
+            
+            print("\n" + f"Error al verificar la existencia del usuario. {e}")
+
 dataBase = DataBase()
 
 
@@ -192,14 +217,28 @@ def menu_login():
                         limpiar_consola()
                         
                         user_id = input("\n" + "Identificación del usuario: ")
-                        first_name = input("Primer nombre del usuario:  ")
+                        first_name = input("Primer nombre del usuario: ")
+                                                   
+                        # Validación del primer nombre (no debe estar vacío)
+                        
+                        while not first_name:
+                            
+                            print("\n" + "El primer nombre no puede estar vacío. \n")
+                            first_name = input("Primer nombre del usuario: ")
+                            
                         last_name = input("Apellidos del usuario: ")
+                        
+                        # Validación del primer apellido (no debe estar vacío)
+                        
+                        while not last_name:
+                            
+                            print("\n" + "El apellido no puede estar vacío. \n")
+                            last_name = input("Apellidos del usuario: ")
+                        
                         email = input("Correo electronico del usuario: ")
                         phone_number = input("Numero de telefono del usuario: ")
                         
                         dataBase.register_a_wisher(user_id, first_name, last_name, email, phone_number)
-                        
-                        print("\n" + f"Querido {username}, has registrado un usuario con exito.")
                         
                     elif opcion_admin == "n":
                         
@@ -227,20 +266,43 @@ def menu_login():
                     if opcion_user == "s":
                         
                         limpiar_consola()
+                        full_name = input("\n" + "Ingresa tu nombre completo: ")
                         
-                        full_name = input("\n" + "Tu nombre completo: ")
-                        describe_your_wish = input("Describe tu deseo: ")
-                        when_you_want_it_to_happen = input("¿Cuando quieres que pase?: ")
-
-                        dataBase.make_a_wish(full_name, describe_your_wish, when_you_want_it_to_happen)
+                        # Validación del nombre completo (debe contener al menos un espacio)
                         
-                        print("\n" + f"Querid@ {full_name}, has realizado tu deseo con exito.")
+                        if " " in full_name:
+                            
+                            first_name, last_name = full_name.split(" ", 1)
+                            
+                            if dataBase.check_user_existence(first_name, last_name):
+                                
+                                describe_your_wish = input("Describe tu deseo: ")
+                                when_you_want_it_to_happen = input("¿Cuándo quieres que pase?: ")
+                                dataBase.make_a_wish(full_name, describe_your_wish, when_you_want_it_to_happen)
+                                
+                                limpiar_consola()
+                                print("\n" + f"Querid@ {full_name}, próximamente se cumplirá tu deseo...")
+                                break
+                            
+                            else:
+                                
+                                limpiar_consola()
+                                print("\n" + "El usuario no está registrado, pídele al administrador que te registre...")
+                        else:
+                            
+                            limpiar_consola()
+                            print("\n" + "Ingresa tu nombre y apellidos.")
+                            continue
                         
                     elif opcion_user == "n":
                         
                         limpiar_consola()
                         print("Nos vemos pronto...\n")
                         break
+                    
+                    else:
+                        limpiar_consola()
+                        print("\n" + "Por favor, ingresa una opción válida (s/n). \n")
                     
                 dataBase.close()
             
